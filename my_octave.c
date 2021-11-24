@@ -13,7 +13,7 @@ int **alloc_matrix(int n, int m);
 void read_matrix(int **matrix, int n, int m);
 void resize_3D_array(int ****list, int *size);
 void resize_2D_array(int ***list, int *size);
-void print_dimensions(int **list, int list_length);
+void print_dimensions(int ***list, int list_length);
 
 int main(void)
 {
@@ -33,33 +33,37 @@ int main(void)
 
 	do {
 		scanf("%c", &command);
-		getchar();
 		switch (command) {
 		case ALLOC:
 			add_matrix(&list, &length, &size, &dimensions_list, &dimensions_length, &dimensions_size);
 			break;
 		case DIM:
-			print_dimensions(dimensions_list, dimensions_length);
-		   
+			print_dimensions(&dimensions_list, dimensions_length);
+			break;
+		  
 
 		}
+		getchar();
+
 	} while (command != STOP);
 
-	//free(list);
+	free(list);
+	free(dimensions_list);
 	return 0;
 }
 
 /** Print the number of rows and columns for a matrix at a given index */
-void print_dimensions(int **list, int list_length) {
+void print_dimensions(int ***list, int list_length) {
 	int index;
 	scanf("%d", &index);
 
-	if(index >= list_length) {
-		printf("No matrix with the given index”\n");
+	if(index >= list_length || index < 0) {
+		printf("No matrix with the given index\n");
+		printf("Length: %d\n", list_length );
 		return;
 	}
 
-	printf("%d %d\n", list[index][0], list[index][1]);
+	printf("%d %d\n", *list[index][0], *list[index][1]);
 }
 
 /** Add a new matrix to the 3D array */
@@ -71,8 +75,9 @@ void add_matrix(int ****list, int *list_length, int *list_size, int ***dim_list,
 		resize_2D_array(dim_list, dim_size);
 
 	int rows, cols;
-	printf("Waiting for dims:\n");
+	// printf("Waiting for dims:\n");
 	scanf("%d%d", &rows, &cols);
+	// getchar();
 
 	int **new_matrix = (int **)alloc_matrix(rows, cols);
 	read_matrix(new_matrix, rows, cols);
@@ -83,7 +88,8 @@ void add_matrix(int ****list, int *list_length, int *list_size, int ***dim_list,
 	//Add 2D coords to the dimensions array
 	*dim_list[*dim_length][0] = rows;
 	*dim_list[*dim_length][1] = cols;
-	dim_length++;
+	// printf("TEST%d\n", *dim_list[*dim_length][1]);
+	*dim_length = *dim_length + 1;
 }
 
 
