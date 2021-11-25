@@ -6,6 +6,7 @@
 #define ALLOC 'L'
 #define DIM 'D'
 #define PRINT 'P'
+#define MULTIPLY 'M'
 #define STOP 'Q'
 
 // TODO cons./
@@ -17,6 +18,8 @@ void read_matrix(int **matrix, int n, int m);
 void resize_matrix_list(int ****matrix_list, int ***dim_list, int *size);
 void print_dimensions(int **list, int list_length);
 void print_array(int ***list, int **dimensions_array, int current_length);
+void print_out_of_bounds_error();
+void multiply_matrix(int ***matrix_list, int *matrix_list_len, int *matrix_list_size, int **dim_matrix);
 
 int main(void)
 {
@@ -40,6 +43,9 @@ int main(void)
 			break;
 		case PRINT:
 			print_array(list, dimensions_list, length);
+			break;
+		case MULTIPLY:
+			multiply_matrix(list, &length, &size, dimensions_list);
 			break;
 		case STOP:
 				continue;
@@ -65,7 +71,7 @@ void print_array(int ***list, int **dimensions_array, int current_length)
 
 	if (index >= current_length || index < 0)
 	{
-		printf("No matrix with the given index\n");
+		print_out_of_bounds_error();
 		return;
 	}
 
@@ -85,8 +91,7 @@ void print_dimensions(int **list, int list_length)
 
 	if (index >= list_length || index < 0)
 	{
-		printf("No matrix with the given index\n");
-		printf("Length: %d\n", list_length);
+		print_out_of_bounds_error();
 		return;
 	}
 
@@ -123,7 +128,11 @@ int ***initialize_3D_array(int initial_size)
 	return list;
 }
 
-// Double the size of a 3D array
+/** Double the size of a 3D array
+ * @****matrix_list - pointer to the list of 2D arrays
+ * @***dim_list - pointer to the list of dimensions array
+ * @*size - pointer to list max size
+ */
 void resize_matrix_list(int ****matrix_list, int ***dim_list, int *size)
 {
 	*size += SIZE;
@@ -132,7 +141,10 @@ void resize_matrix_list(int ****matrix_list, int ***dim_list, int *size)
 	*dim_list = (int **)realloc(*dim_list, *size * sizeof(int *));
 }
 
-// Dynamically alloc matrix memory
+/** Dynamically alloc matrix memory
+ *  @n - number of rows
+ * 	@m - number of columns
+ */
 int **alloc_matrix(int n, int m)
 {
 
@@ -150,7 +162,11 @@ int **alloc_matrix(int n, int m)
 	return matrix;
 }
 
-// Read from stdin an array with n rows and m columns2
+/** Read from stdin an array with n rows and m columns2
+ *  @matrix - 2D Array where the values will be stored
+ *  @n - number of rows
+ * 	@m - number of columns
+ */ 
 void read_matrix(int **matrix, int n, int m)
 {
 	for (int i = 0; i < n; i++)
@@ -159,9 +175,47 @@ void read_matrix(int **matrix, int n, int m)
 }
 
 
-// void multiply_matrix(int ***matrix_list, int *matrix_list_len, int *matrix_list_size, int **dim_matrix) {
-// 	if(*matrix_list_len == *matrix_list_size) {
-// 		resize_matrix_list(&matrix_list, matrix_list_size);
-// 		resize_2D_array(&dim_matrix, )
-// 	}
-// }
+void multiply_matrix(int ***matrix_list, int *matrix_list_len, int *matrix_list_size, int **dim_matrix) {
+	int index_first_matrix;
+	int index_second_matrix;
+
+	scanf("%d%d", &index_first_matrix, &index_second_matrix);
+
+	if(index_first_matrix >= *matrix_list_len || index_first_matrix < -1 || 
+		index_second_matrix >= *matrix_list_len || index_second_matrix < -1) {
+			print_out_of_bounds_error();
+			return;
+		}
+
+	int first_rows = dim_matrix[index_first_matrix][0];
+	int first_cols = dim_matrix[index_first_matrix][1];
+	
+	int second_rows = dim_matrix[index_second_matrix][0];
+	int second_cols = dim_matrix[index_second_matrix][1];
+
+	if(first_cols != second_rows) {
+		printf("Cannot perform matrix multiplication\n");
+		return;
+	}
+
+	if(*matrix_list_len == *matrix_list_size) 
+		resize_matrix_list(&matrix_list, &dim_matrix, matrix_list_size);
+
+	int **result = alloc_matrix(first_rows, second_cols);
+	
+	for(int i = 0; i < first_rows; i++)
+		for(int j = 0; j < second_cols; j++)
+			for(int k = 0; k < second_rows; k++)
+				result[i][j] += matrix_list[index_first_matrix][i][k] * matrix_list[index_second_matrix][k][j];
+	
+	matrix_list[*matrix_list_len] = result;
+	dim_matrix[*matrix_list_len][0] = first_rows;
+	dim_matrix[*matrix_list_len][1] = second_cols;
+	*matrix_list_len = *matrix_list_len + 1;
+	
+}
+
+/** Print an error if given index doesn't correspond to any array */
+void print_out_of_bounds_error() {
+	printf("No matrix with the given index\n");
+}
