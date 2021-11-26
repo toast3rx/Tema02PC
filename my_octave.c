@@ -7,6 +7,7 @@
 #define DIM 'D'
 #define PRINT 'P'
 #define MULTIPLY 'M'
+#define TRANSPOSE 'T'
 #define STOP 'Q'
 
 // TODO cons./
@@ -20,6 +21,11 @@ void print_dimensions(int **list, int list_length);
 void print_array(int ***list, int **dimensions_array, int current_length);
 void print_out_of_bounds_error();
 void multiply_matrix(int ***matrix_list, int *matrix_list_len, int *matrix_list_size, int **dim_matrix);
+void add_transpose_matrix(int ***list, int length, int **dim);
+void res_rows(int ****list, int index, int rows);
+void res_cols(int ****list, int index, int cols);
+void another_res(int ****list, int index, int rows);
+int **transpose_matrix(int **matrix, int rows, int cols);
 
 int main(void)
 {
@@ -35,7 +41,7 @@ int main(void)
 		scanf("%c", &command);
 		switch (command)
 		{
-		case ALLOC:
+		case ALLOC: 
 			add_matrix(list, &length, &size, dimensions_list);
 			break;
 		case DIM:
@@ -46,6 +52,9 @@ int main(void)
 			break;
 		case MULTIPLY:
 			multiply_matrix(list, &length, &size, dimensions_list);
+			break;
+		case TRANSPOSE:
+			add_transpose_matrix(list, length, dimensions_list);
 			break;
 		case STOP:
 				continue;
@@ -215,6 +224,52 @@ void multiply_matrix(int ***matrix_list, int *matrix_list_len, int *matrix_list_
 	
 }
 
+
+
+/** Replace a matrix at the given index with its transpose
+ * @list - list of 2D arrays
+ * @length - list length
+ * @dim - list that stores arrays rows and columns number
+ */
+void add_transpose_matrix(int ***list, int length, int **dim) {
+	int index;
+	scanf("%d", &index);	
+
+	if(index >= length || index < 0)
+		print_out_of_bounds_error();
+
+	int rows = dim[index][0];
+	int cols = dim[index][1];
+	
+	// for(int i = 0 ; i < rows; i++)
+	// 	for(int j = i; j < cols; j++) {
+	// 		int temp = list[index][i][j];
+	// 		list[index][i][j] = list[index][j][i];
+	// 		list[index][j][i] = temp;
+	// 	}
+
+	list[index] = transpose_matrix(list[index], rows, cols);
+	dim[index][0] = cols;
+	dim[index][1] = rows;
+
+}
+
+/** Return the transpose of a matrix
+ * @**matrix - 2D array to be tranpose
+ * @rows - number of rows
+ * @cols - number of columns
+ */
+int **transpose_matrix(int **matrix, int rows, int cols) {
+		int **transpose = alloc_matrix(cols, rows);
+
+		for(int i = 0; i < rows; i++)
+			for(int j = 0; j < cols; j++)
+				transpose[j][i]  = matrix[i][j];
+
+
+		return transpose;
+
+}
 /** Print an error if given index doesn't correspond to any array */
 void print_out_of_bounds_error() {
 	printf("No matrix with the given index\n");
