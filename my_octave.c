@@ -68,8 +68,7 @@ int main(void)
 			free_index_matrix(list, &length, dimensions_list);
 			break;
 		case STOP:
-				continue;
-
+				break;
 		default:
 			printf("Unknown command!\n");
 			break;
@@ -130,7 +129,6 @@ void add_matrix(int ***list, int *list_length, int *list_size, int **dim_list)
 	list[*list_length] = new_matrix;
 	//Add 2D coords to the dimensions array
 	dim_list[*list_length][0] = rows;
-	printf("OK\n");
 	dim_list[*list_length][1] = cols;
 
 	*list_length = *list_length + 1;
