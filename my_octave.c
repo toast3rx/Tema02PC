@@ -8,6 +8,8 @@
 #define PRINT 'P'
 #define MULTIPLY 'M'
 #define TRANSPOSE 'T'
+#define SORT 'S'
+#define FREE 'F'
 #define STOP 'Q'
 
 // TODO cons./
@@ -16,7 +18,7 @@ void add_matrix(int ***list, int *list_length, int *list_size, int **dim_list);
 int ***initialize_3D_array(int initial_size);
 int **alloc_matrix(int n, int m);
 void read_matrix(int **matrix, int n, int m);
-void resize_matrix_list(int ****matrix_list, int ***dim_list, int *size);
+void resize_matrix_list(int ****matrix_list, int ***dim_list, int *size, int length);
 void print_dimensions(int **list, int list_length);
 void print_array(int ***list, int **dimensions_array, int current_length);
 void print_out_of_bounds_error();
@@ -26,6 +28,11 @@ void res_rows(int ****list, int index, int rows);
 void res_cols(int ****list, int index, int cols);
 void another_res(int ****list, int index, int rows);
 int **transpose_matrix(int **matrix, int rows, int cols);
+void free_matrix(int **matrix, int rows);
+int matrix_sum(int **matrix, int rows, int cols);
+void sort_list(int ***list, int list_length, int **dim_list);
+void swap_two_numbers(int *x, int *y);
+void free_index_matrix(int ***list, int *length, int **dim_list);
 
 int main(void)
 {
@@ -36,11 +43,9 @@ int main(void)
 	int **dimensions_list = alloc_matrix(size, 2);
 
 	char command;
-
 	do {
 		scanf("%c", &command);
-		switch (command)
-		{
+		switch (command) {
 		case ALLOC: 
 			add_matrix(list, &length, &size, dimensions_list);
 			break;
@@ -56,6 +61,12 @@ int main(void)
 		case TRANSPOSE:
 			add_transpose_matrix(list, length, dimensions_list);
 			break;
+		case SORT:
+			sort_list(list, length, dimensions_list);
+			break;
+		case FREE:
+			free_index_matrix(list, &length, dimensions_list);
+			break;
 		case STOP:
 				continue;
 
@@ -67,8 +78,7 @@ int main(void)
 
 	} while (command != STOP);
 
-	free(list);
-	free(dimensions_list);
+	// free_all(list, dimensions_list, length);
 	return 0;
 }
 
@@ -78,14 +88,12 @@ void print_array(int ***list, int **dimensions_array, int current_length)
 	int index;
 	scanf("%d", &index);
 
-	if (index >= current_length || index < 0)
-	{
+	if (index >= current_length || index < 0) {
 		print_out_of_bounds_error();
 		return;
 	}
 
-	for (int i = 0; i < dimensions_array[index][0]; i++)
-	{
+	for (int i = 0; i < dimensions_array[index][0]; i++) {
 		for (int j = 0; j < dimensions_array[index][1]; j++)
 			printf("%d ", list[index][i][j]);
 		printf("\n");
@@ -98,8 +106,7 @@ void print_dimensions(int **list, int list_length)
 	int index;
 	scanf("%d", &index);
 
-	if (index >= list_length || index < 0)
-	{
+	if (index >= list_length || index < 0) {
 		print_out_of_bounds_error();
 		return;
 	}
@@ -111,7 +118,7 @@ void print_dimensions(int **list, int list_length)
 void add_matrix(int ***list, int *list_length, int *list_size, int **dim_list)
 {
 	if (*list_length == *list_size) {
-		resize_matrix_list(&list, &dim_list, list_size);
+		resize_matrix_list(&list, &dim_list, list_size, *list_length);
 	}
 
 	int rows, cols;
@@ -123,6 +130,7 @@ void add_matrix(int ***list, int *list_length, int *list_size, int **dim_list)
 	list[*list_length] = new_matrix;
 	//Add 2D coords to the dimensions array
 	dim_list[*list_length][0] = rows;
+	printf("OK\n");
 	dim_list[*list_length][1] = cols;
 
 	*list_length = *list_length + 1;
@@ -142,12 +150,15 @@ int ***initialize_3D_array(int initial_size)
  * @***dim_list - pointer to the list of dimensions array
  * @*size - pointer to list max size
  */
-void resize_matrix_list(int ****matrix_list, int ***dim_list, int *size)
+void resize_matrix_list(int ****matrix_list, int ***dim_list, int *size, int length)
 {
 	*size += SIZE;
 	*matrix_list = (int ***)realloc(*matrix_list, *size * sizeof(int **));
 	// Realloc memory for dimensions array
 	*dim_list = (int **)realloc(*dim_list, *size * sizeof(int *));
+	for(int i = length; i < *size; i++)
+		dim_list[0][i] = (int *) malloc(2 * sizeof(int));
+	
 }
 
 /** Dynamically alloc matrix memory
@@ -156,18 +167,15 @@ void resize_matrix_list(int ****matrix_list, int ***dim_list, int *size)
  */
 int **alloc_matrix(int n, int m)
 {
-
 	int **matrix = (int **)malloc(n * sizeof(int *));
 	if (!matrix)
 		return NULL;
 
-	for (int i = 0; i < n; i++)
-	{
+	for (int i = 0; i < n; i++)	{
 		matrix[i] = (int *)malloc(m * sizeof(int));
 		if (!(matrix + i))
 			return NULL;
 	}
-
 	return matrix;
 }
 
@@ -180,7 +188,8 @@ void read_matrix(int **matrix, int n, int m)
 {
 	for (int i = 0; i < n; i++)
 		for (int j = 0; j < m; j++)
-			scanf("%d", (*(matrix + i) + j));
+			scanf("%d", &matrix[i][j]);
+		
 }
 
 
@@ -208,7 +217,7 @@ void multiply_matrix(int ***matrix_list, int *matrix_list_len, int *matrix_list_
 	}
 
 	if(*matrix_list_len == *matrix_list_size) 
-		resize_matrix_list(&matrix_list, &dim_matrix, matrix_list_size);
+		resize_matrix_list(&matrix_list, &dim_matrix, matrix_list_size, *matrix_list_len);
 
 	int **result = alloc_matrix(first_rows, second_cols);
 	
@@ -248,6 +257,8 @@ void add_transpose_matrix(int ***list, int length, int **dim) {
 	// 		list[index][j][i] = temp;
 	// 	}
 
+	// free_matrix(list[index], rows);
+
 	list[index] = transpose_matrix(list[index], rows, cols);
 	dim[index][0] = cols;
 	dim[index][1] = rows;
@@ -266,11 +277,94 @@ int **transpose_matrix(int **matrix, int rows, int cols) {
 			for(int j = 0; j < cols; j++)
 				transpose[j][i]  = matrix[i][j];
 
-
 		return transpose;
 
 }
+
+void free_index_matrix(int ***list, int *length, int **dim_list) {
+
+	int index;
+	scanf("%d", &index);
+
+	if(index >= *length || index < 0) {
+		print_out_of_bounds_error();
+		return;
+	}
+
+	// Delete 2D array from given index
+	free_matrix(list[index], dim_list[index][0]);
+
+	// Move to "left" the arrays from index to end
+	for(int i = index; i < *length - 1; i++)
+		list[i] = list[i + 1];
+	// Remove last pointer from array
+	list[*length - 1] = NULL;
+
+	// Delete dimensions for the deleted array
+	free(dim_list[index]);
+	for(int i = index; i < *length - 1; i++)
+		dim_list[i] = dim_list[i + 1];
+	dim_list[*length - 1] = NULL;
+	free(dim_list[*length - 1]);
+	dim_list[*length - 1] = (int *) calloc(2, sizeof(int));
+
+	*length = *length - 1;
+}
+
+/** Free a matrix of memory and its rows 
+ * @matrix -- the matrix to be freed
+ * @rows -- number of rows
+ */
+void free_matrix(int **matrix, int rows) {
+	for(int i = 0; i < rows; i++)
+		free(matrix[i]);
+	free(matrix);
+}
+
+/** Sort the matrices in the list based on the sum of the elements
+ * Bubble sort algorithm
+ */
+void sort_list(int ***list, int list_length, int **dim_list) {
+	
+	for(int i = 0; i < list_length; i++) {
+		int swapped = 0;
+		for(int j = 0; j < list_length - i- 1; j++) {
+			int first_sum = matrix_sum(list[j], dim_list[j][0], dim_list[j][1]);
+			int second_sum = matrix_sum(list[j + 1], dim_list[j + 1][0], dim_list[j + 1][1]);
+			if(first_sum > second_sum) {
+				int **temp = list[j];
+				list[j] = list[j + 1];
+				list[j + 1] = temp;
+
+				swap_two_numbers(&dim_list[j][0], &dim_list[j + 1][0]);
+				swap_two_numbers(&dim_list[j][1], &dim_list[j + 1][1]);
+				swapped = 1;
+			}
+		}
+		if(swapped == 1)
+			return;
+	}
+}
+
+/** Swap the values of two numbers */
+void swap_two_numbers(int *x, int *y) {
+	int temp = *x;
+	*x = *y;
+	*y = temp;
+}
+
+/** Return the sum of the elements in a matrix */
+int matrix_sum(int **matrix, int rows, int cols) {
+	int sum = 0;
+	for(int i = 0; i < rows; i++)
+		for(int j = 0; j < cols; j++)
+			sum+= matrix[i][j];
+	return sum;
+}
+
 /** Print an error if given index doesn't correspond to any array */
 void print_out_of_bounds_error() {
 	printf("No matrix with the given index\n");
 }
+
+
