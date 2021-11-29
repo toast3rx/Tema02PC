@@ -230,11 +230,17 @@ void multiply_matrix(int ****matrix_list, int *matrix_list_len, int *matrix_list
 
 	int **result = alloc_matrix(first_rows, second_cols);
 	
-	for(int i = 0; i < first_rows; i++)
-		for(int j = 0; j < second_cols; j++)
+	for(int i = 0; i < first_rows; i++){
+		for(int j = 0; j < second_cols; j++) {
+			
 			for(int k = 0; k < second_rows; k++)
-				result[i][j] += ((*matrix_list)[index_first_matrix][i][k] % MOD) * ((*matrix_list)[index_second_matrix][k][j]);
-	
+				result[i][j] = ((result[i][j] % MOD) + (((*matrix_list)[index_first_matrix][i][k] % MOD) * (((*matrix_list)[index_second_matrix][k][j]) % MOD))) % MOD;
+			while(result[i][j] < 0){
+					result[i][j] += MOD;
+			}
+		}
+				
+	}
 	(*matrix_list)[*matrix_list_len] = result;
 	(*dim_matrix)[*matrix_list_len][0] = first_rows;
 	(*dim_matrix)[*matrix_list_len][1] = second_cols;
@@ -267,8 +273,10 @@ void add_transpose_matrix(int ***list, int length, int **dim) {
 	// 	}
 
 	// free_matrix(list[index], rows);
-
-	list[index] = transpose_matrix(list[index], rows, cols);
+	
+	int **transpose_result = transpose_matrix(list[index], rows, cols);
+	free_matrix(list[index], rows);
+	list[index] =  transpose_result;
 	dim[index][0] = cols;
 	dim[index][1] = rows;
 
@@ -383,7 +391,10 @@ int matrix_sum(int **matrix, int rows, int cols) {
 	int sum = 0;
 	for(int i = 0; i < rows; i++)
 		for(int j = 0; j < cols; j++)
-			sum+= (matrix[i][j] % MOD);
+			sum = ((sum % MOD) +  (matrix[i][j] % MOD)) % MOD;
+		
+	while(sum < 0) 
+		sum += MOD;
 	return sum;
 }
 
