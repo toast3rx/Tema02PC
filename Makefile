@@ -1,5 +1,5 @@
 build:
-	gcc -Wall -Wextra  my_octave.c -o my_octave
+	gcc -ggdb3  -Wall -Wextra  my_octave.c -o my_octave
 
 run:
 	./my_octave
