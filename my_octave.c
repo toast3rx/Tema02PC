@@ -340,12 +340,10 @@ void free_all(int ***list, int length, int size, int **dim) {
 	for(int i = 0; i < length; i++) {
 		free_matrix(list[i], dim[i][0]);
 	}
-
-	// for(int i = length; i <= size; i++)
-	// 	free(list[i]);
 	free(list);
-	free_matrix(dim, length);
-		
+
+	free_matrix(dim, size);
+
 }
 
 /** Sort the matrices in the list based on the sum of the elements
