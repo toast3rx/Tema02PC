@@ -254,6 +254,7 @@ void multiply_matrix(int ****matrix_list, int *matrix_list_len, int *matrix_list
 		}
 				
 	}
+
 	(*matrix_list)[*matrix_list_len] = result;
 	(*dim_matrix)[*matrix_list_len][0] = first_rows;
 	(*dim_matrix)[*matrix_list_len][1] = second_cols;
@@ -334,7 +335,7 @@ void free_index_matrix(int ***list, int *length, int **dim_list, int *size) {
 	free(dim_list[index]);
 	for(int i = index; i < *length - 1; i++)
 		dim_list[i] = dim_list[i + 1];
-	// dim_list[*length - 1] = NULL;
+	dim_list[*length - 1] = NULL;
 	// free(dim_list[*length - 1]);
 	dim_list[*length - 1] = (int *) calloc(2, sizeof(int));
 
@@ -344,8 +345,6 @@ void free_index_matrix(int ***list, int *length, int **dim_list, int *size) {
 	// if(*length < *size / 2) {
 	// 	realloc_matrix_list(&list, &dim_list, size, *length, *size / 2);
 	// }
-
-
 }
 
 /** Free a matrix of memory and its rows 
@@ -373,25 +372,24 @@ void free_all(int ***list, int length, int size, int **dim) {
  * Bubble sort algorithm
  */
 void sort_list(int ***list, int list_length, int **dim_list) {
-	
-	for(int i = 0; i < list_length; i++) {
-		int swapped = 0;
-		for(int j = 0; j < list_length - i- 1; j++) {
-			int first_sum = matrix_sum(list[j], dim_list[j][0], dim_list[j][1]);
-			int second_sum = matrix_sum(list[j + 1], dim_list[j + 1][0], dim_list[j + 1][1]);
+	for(int i = 0; i < list_length - 1; i++) {
+		// int swapped = 0;
+		for(int j = i + 1; j < list_length; j++) {
+			int first_sum = matrix_sum(list[i], dim_list[i][0], dim_list[i][1]);
+			int second_sum = matrix_sum(list[j], dim_list[j][0], dim_list[j][1]);
 			if(first_sum > second_sum) {
-				int **temp = list[j];
-				list[j] = list[j + 1];
-				list[j + 1] = temp;
+				int **temp = list[i];
+				list[i] = list[j];
+				list[j] = temp;
 
-				swap_two_numbers(&dim_list[j][0], &dim_list[j + 1][0]);
-				swap_two_numbers(&dim_list[j][1], &dim_list[j + 1][1]);
-				swapped = 1;
+				swap_two_numbers(&dim_list[i][0], &dim_list[j][0]);
+				swap_two_numbers(&dim_list[i][1], &dim_list[j][1]);
+				// swapped = 1;
 			}
 		}
-		if(swapped == 1) {
-			return;
-		}
+		// if(swapped == 1) {
+		// 	return;
+		// }
 	}
 }
 
@@ -407,10 +405,11 @@ int matrix_sum(int **matrix, int rows, int cols) {
 	int sum = 0;
 	for(int i = 0; i < rows; i++)
 		for(int j = 0; j < cols; j++){
-			sum = ((sum % MOD) +  (matrix[i][j] % MOD)) % MOD;
+			// sum = ((sum % MOD) +  (matrix[i][j] % MOD)) % MOD;
+			sum += matrix[i][j] % MOD;
 		}
-		
-	while(sum < 0) 
+	sum = sum % MOD;
+	if(sum < 0) 
 		sum += MOD;
 	return sum;
 }
@@ -420,10 +419,7 @@ void resize_matrix(int ****list, int *length, int ***dim_list) {
 	int index;
 	scanf("%d", &index);
 
-	if(index >= *length || index < 0) {
-		print_out_of_bounds_error();
-		return;
-	}
+	
 
 	int number_of_rows;
 	scanf("%d", &number_of_rows);
@@ -439,6 +435,13 @@ void resize_matrix(int ****list, int *length, int ***dim_list) {
 	for(int i = 0; i < number_of_cols; i++)
 		scanf("%d", &cols[i]);
 
+	if(index >= *length || index < 0) {
+		print_out_of_bounds_error();
+		free(cols);
+		free(rows);
+		return;
+	}
+	
 	int **result = (int **) calloc(number_of_rows, sizeof(int *));
 	for(int i = 0; i < number_of_rows; i++)
 		result[i] = (int *)calloc(number_of_cols, sizeof(int));
