@@ -11,7 +11,7 @@
 #define REDIM 'C'
 #define MULTIPLY 'M'
 #define TRANSPOSE 'T'
-#define SORT 'S'
+#define SORT 'O'
 #define FREE 'F'
 #define STOP 'Q'
 
@@ -75,7 +75,7 @@ int main(void)
 		case STOP:
 				break;
 		default:
-			printf("Unknown command!\n");
+			printf("Unrecognized command\n");
 			break;
 		}
 		getchar();
@@ -124,8 +124,7 @@ void add_matrix(int ****list, int *list_length, int *list_size, int ***dim_list)
 {
 	
 	if (*list_length == *list_size) {
-		int new_size = *list_size * 2;
-		realloc_matrix_list(list, dim_list, list_size, *list_length, new_size );
+		realloc_matrix_list(list, dim_list, list_size, *list_length, *list_size * 2);
 	}
 
 	int rows, cols;
@@ -145,7 +144,7 @@ void add_matrix(int ****list, int *list_length, int *list_size, int ***dim_list)
 // First initialization of a 3D array
 int ***initialize_3D_array(int initial_size)
 {
-	int ***list = (int ***) malloc(initial_size * sizeof(int **));
+	int ***list = (int ***) calloc(initial_size, sizeof(int **));
 	if (!list)
 		return NULL;
 	return list;
@@ -160,10 +159,22 @@ void realloc_matrix_list(int ****matrix_list, int ***dim_list, int *size, int le
 {
 	*size = new_size;
 	*matrix_list = (int ***)realloc(*matrix_list, *size * sizeof(int **));
+	if(!matrix_list) {
+		printf("ERROR\n");
+		return;
+	}
 	// Realloc memory for dimensions array
 	*dim_list = (int **)realloc(*dim_list, *size * sizeof(int *));
+	if(!*dim_list) {
+		printf("ERROR\n");
+		return;
+	}
 	for(int i = length; i < *size; i++){
 		(*dim_list)[i] = (int *) calloc(2, sizeof(int));
+		if(!(*dim_list)[i]) {
+			printf("ERROR\n");
+			return;
+		}
 	}
 	
 }
@@ -174,7 +185,7 @@ void realloc_matrix_list(int ****matrix_list, int ***dim_list, int *size, int le
  */
 int **alloc_matrix(int n, int m)
 {
-	int **matrix = (int **)malloc(n * sizeof(int *));
+	int **matrix = (int **)calloc(n, sizeof(int *));
 	if (!matrix)
 		return NULL;
 
@@ -224,15 +235,17 @@ void multiply_matrix(int ****matrix_list, int *matrix_list_len, int *matrix_list
 	}
 
 	if(*matrix_list_len == *matrix_list_size) {
-		int new_size = *matrix_list_size * 2;
-		realloc_matrix_list(matrix_list, dim_matrix, matrix_list_size, *matrix_list_len, new_size);
+		realloc_matrix_list(matrix_list, dim_matrix, matrix_list_size, *matrix_list_len, *matrix_list_size * 2);
 	}
 
 	int **result = alloc_matrix(first_rows, second_cols);
+	if(!result) {
+		printf("ERROR\n");
+		return;
+	}
 	
 	for(int i = 0; i < first_rows; i++){
 		for(int j = 0; j < second_cols; j++) {
-			
 			for(int k = 0; k < second_rows; k++)
 				result[i][j] = ((result[i][j] % MOD) + (((*matrix_list)[index_first_matrix][i][k] % MOD) * (((*matrix_list)[index_second_matrix][k][j]) % MOD))) % MOD;
 			while(result[i][j] < 0){
@@ -321,8 +334,8 @@ void free_index_matrix(int ***list, int *length, int **dim_list, int *size) {
 	free(dim_list[index]);
 	for(int i = index; i < *length - 1; i++)
 		dim_list[i] = dim_list[i + 1];
-	dim_list[*length - 1] = NULL;
-	free(dim_list[*length - 1]);
+	// dim_list[*length - 1] = NULL;
+	// free(dim_list[*length - 1]);
 	dim_list[*length - 1] = (int *) calloc(2, sizeof(int));
 
 	*length = *length - 1;
@@ -339,8 +352,9 @@ void free_index_matrix(int ***list, int *length, int **dim_list, int *size) {
  * @rows -- number of rows
  */
 void free_matrix(int **matrix, int rows) {
-	for(int i = 0; i < rows; i++)
+	for(int i = 0; i < rows; i++){
 		free(matrix[i]);
+	}
 	free(matrix);
 }
 
@@ -374,8 +388,9 @@ void sort_list(int ***list, int list_length, int **dim_list) {
 				swapped = 1;
 			}
 		}
-		if(swapped == 1)
+		if(swapped == 1) {
 			return;
+		}
 	}
 }
 
@@ -390,8 +405,9 @@ void swap_two_numbers(int *x, int *y) {
 int matrix_sum(int **matrix, int rows, int cols) {
 	int sum = 0;
 	for(int i = 0; i < rows; i++)
-		for(int j = 0; j < cols; j++)
+		for(int j = 0; j < cols; j++){
 			sum = ((sum % MOD) +  (matrix[i][j] % MOD)) % MOD;
+		}
 		
 	while(sum < 0) 
 		sum += MOD;
@@ -422,7 +438,7 @@ void resize_matrix(int ****list, int *length, int ***dim_list) {
 	for(int i = 0; i < number_of_cols; i++)
 		scanf("%d", &cols[i]);
 
-	int **result = (int **) malloc(number_of_rows * sizeof(int *));
+	int **result = (int **) calloc(number_of_rows, sizeof(int *));
 	for(int i = 0; i < number_of_rows; i++)
 		result[i] = (int *)calloc(number_of_cols, sizeof(int));
 
