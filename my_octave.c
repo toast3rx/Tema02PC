@@ -340,9 +340,10 @@ void free_index_matrix(int ***list, int *length, int **dim_list, int *size) {
 
 	*length = *length - 1;
 
-	if(*length < *size / 2) {
-		realloc_matrix_list(&list, &dim_list, size, *length, *size / 2);
-	}
+	// BIG PROBLEM HERE 
+	// if(*length < *size / 2) {
+	// 	realloc_matrix_list(&list, &dim_list, size, *length, *size / 2);
+	// }
 
 
 }
@@ -451,6 +452,9 @@ void resize_matrix(int ****list, int *length, int ***dim_list) {
 
 	(*dim_list)[index][0] = number_of_rows;
 	(*dim_list)[index][1] = number_of_cols;	
+
+	free(cols);
+	free(rows);
 }
 
 /** Print an error if given index doesn't correspond to any array */
