@@ -334,8 +334,8 @@ void free_index_matrix(int ***list, int *length, int **dim_list)
 	int index;
 	scanf("%d", &index);
 
-	if(is_out_of_bounds(index, length))
-		return
+	if(is_out_of_bounds(index, *length))
+		return;
 
 	// Delete 2D array from given index
 	free_matrix(list[index], dim_list[index][0]);
