@@ -15,24 +15,24 @@
 #define FREE 'F'
 #define STOP 'Q'
 
-void add_matrix(int ****list, 
-				int *list_length, 
-				int *list_size, 
+void add_matrix(int ****list,
+				int *list_length,
+				int *list_size,
 				int ***dim_list);
 int ***initialize_3D_array(int initial_size);
 int **alloc_matrix(int n, int m);
 void read_matrix(int **matrix, int n, int m);
-void realloc_matrix_list(int ****matrix_list, 
-						int ***dim_list, 
-						int *size, 
-						int length,
-						int new_size);
+void realloc_matrix_list(int ****matrix_list,
+						 int ***dim_list,
+						 int *size,
+						 int length,
+						 int new_size);
 void print_dimensions(int **list, int list_length);
 void print_array(int ***list, int **dimensions_array, int current_length);
-void print_out_of_bounds_error();
+void print_out_of_bounds_error(void);
 void multiply_matrix(int ****matrix_list,
-					 int *matrix_list_len, 
-					 int *matrix_list_size, 
+					 int *matrix_list_len,
+					 int *matrix_list_size,
 					 int ***dim_matrix);
 void add_transpose_matrix(int ***list, int length, int **dim);
 int **transpose_matrix(int **matrix, int rows, int cols);
@@ -95,7 +95,7 @@ int main(void)
 	return 0;
 }
 
-/** Print array for a given index 
+/** Print array for a given index
  * @***list - list of 2D arrays
  * @**dimensions_array - array for arrays dimensions
  * @list_length - current length of list
@@ -105,7 +105,7 @@ void print_array(int ***list, int **dimensions_array, int list_length)
 	int index;
 	scanf("%d", &index);
 
-	if(is_out_of_bounds(index, list_length))
+	if (is_out_of_bounds(index, list_length))
 		return;
 
 	for (int i = 0; i < dimensions_array[index][0]; i++) {
@@ -115,8 +115,8 @@ void print_array(int ***list, int **dimensions_array, int list_length)
 	}
 }
 
-/** Print the number of rows and columns for a matrix at a given index 
- * @**list - list of 2d Arrays 
+/** Print the number of rows and columns for a matrix at a given index
+ * @**list - list of 2d Arrays
  * @list_length - current length of list
 */
 void print_dimensions(int **list, int list_length)
@@ -124,12 +124,12 @@ void print_dimensions(int **list, int list_length)
 	int index;
 	scanf("%d", &index);
 
-	if(is_out_of_bounds(index, list_length))
+	if (is_out_of_bounds(index, list_length))
 		return;
 	printf("%d %d\n", list[index][0], list[index][1]);
 }
 
-/** Add a new matrix to the 3D array 
+/** Add a new matrix to the 3D array
  * @****list - pointer to the list of 2D arrays
  * @*list_length - pointer to current length of list
  * @*list_size - total memory allocated for list
@@ -137,10 +137,10 @@ void print_dimensions(int **list, int list_length)
 */
 void add_matrix(int ****list, int *list_length, int *list_size, int ***dim_list)
 {
-
-	if (*list_length == *list_size) {
-		realloc_matrix_list(list, dim_list, list_size, *list_length, *list_size * 2);
-	}
+	if (*list_length == *list_size)
+		realloc_matrix_list(list, dim_list,
+							list_size, *list_length,
+							*list_size * 2);
 
 	int rows, cols;
 	scanf("%d%d", &rows, &cols);
@@ -173,10 +173,10 @@ int ***initialize_3D_array(int initial_size)
  * @***dim_list - pointer to the list of dimensions array
  * @*size - pointer to list max size
  */
-void realloc_matrix_list(int ****matrix_list, 
-						int ***dim_list, 
-						int *size, int length, 
-						int new_size)
+void realloc_matrix_list(int ****matrix_list,
+						 int ***dim_list,
+						 int *size, int length,
+						 int new_size)
 {
 	*size = new_size;
 	*matrix_list = (int ***)realloc(*matrix_list, *size * sizeof(int **));
@@ -200,8 +200,8 @@ void realloc_matrix_list(int ****matrix_list,
 }
 
 /** Dynamically alloc matrix memory
- *  @n - number of rows
- * 	@m - number of columns
+ *	@n - number of rows
+ *	@m - number of columns
  */
 int **alloc_matrix(int n, int m)
 {
@@ -218,9 +218,9 @@ int **alloc_matrix(int n, int m)
 }
 
 /** Read from stdin an array with n rows and m columns2
- *  @matrix - 2D Array where the values will be stored
- *  @n - number of rows
- * 	@m - number of columns
+ *	@matrix - 2D Array where the values will be stored
+ *	@n - number of rows
+ *	@m - number of columns
  */
 void read_matrix(int **matrix, int n, int m)
 {
@@ -235,14 +235,18 @@ void read_matrix(int **matrix, int n, int m)
  * @*matrix_list_size - pointer to total size of the list
  * @***dim_matrix - pointer to 2D array that stores arrays dimensions
  */
-void multiply_matrix(int ****matrix_list, int *matrix_list_len, int *matrix_list_size, int ***dim_matrix)
+void multiply_matrix(int ****matrix_list,
+					 int *matrix_list_len,
+					 int *matrix_list_size,
+					 int ***dim_matrix)
 {
 	int index_first_matrix;
 	int index_second_matrix;
 
 	scanf("%d%d", &index_first_matrix, &index_second_matrix);
 
-	if(is_out_of_bounds(index_first_matrix, *matrix_list_len) || is_out_of_bounds(index_second_matrix, *matrix_list_len))
+	if (is_out_of_bounds(index_first_matrix, *matrix_list_len) ||
+		is_out_of_bounds(index_second_matrix, *matrix_list_len))
 		return;
 
 	int first_rows = (*dim_matrix)[index_first_matrix][0];
@@ -256,9 +260,11 @@ void multiply_matrix(int ****matrix_list, int *matrix_list_len, int *matrix_list
 		return;
 	}
 
-	if (*matrix_list_len == *matrix_list_size) {
-		realloc_matrix_list(matrix_list, dim_matrix, matrix_list_size, *matrix_list_len, *matrix_list_size * 2);
-	}
+	if (*matrix_list_len == *matrix_list_size)
+		realloc_matrix_list(matrix_list, dim_matrix,
+							matrix_list_size,
+							*matrix_list_len,
+							*matrix_list_size * 2);
 
 	int **result = alloc_matrix(first_rows, second_cols);
 	if (!result) {
@@ -269,8 +275,8 @@ void multiply_matrix(int ****matrix_list, int *matrix_list_len, int *matrix_list
 	for (int i = 0; i < first_rows; i++) {
 		for (int j = 0; j < second_cols; j++) {
 			for (int k = 0; k < second_rows; k++)
-				result[i][j] = ((result[i][j] % MOD) + 
-				(((*matrix_list)[index_first_matrix][i][k] % MOD) * 
+				result[i][j] = ((result[i][j] % MOD) +
+				(((*matrix_list)[index_first_matrix][i][k] % MOD) *
 				(((*matrix_list)[index_second_matrix][k][j]) % MOD))) % MOD;
 			while (result[i][j] < 0)
 				result[i][j] += MOD;
@@ -330,11 +336,10 @@ int **transpose_matrix(int **matrix, int rows, int cols)
  */
 void free_index_matrix(int ***list, int *length, int **dim_list)
 {
-
 	int index;
 	scanf("%d", &index);
 
-	if(is_out_of_bounds(index, *length))
+	if (is_out_of_bounds(index, *length))
 		return;
 
 	// Delete 2D array from given index
@@ -357,20 +362,18 @@ void free_index_matrix(int ***list, int *length, int **dim_list)
 
 	// BIG PROBLEM HERE
 	// if(*length < *size / 2) {
-	// 	realloc_matrix_list(&list, &dim_list, size, *length, *size / 2);
-	// }
+	//	realloc_matrix_list(&list, &dim_list, size, *length, *size / 2);
+	//	}
 }
 
-/** Free a matrix of memory and its rows 
+/** Free a matrix of memory and its rows
  * @matrix -- the matrix to be freed
  * @rows -- number of rows
  */
 void free_matrix(int **matrix, int rows)
 {
 	for (int i = 0; i < rows; i++)
-	{
 		free(matrix[i]);
-	}
 	free(matrix);
 }
 
@@ -382,9 +385,8 @@ void free_matrix(int **matrix, int rows)
  */
 void free_all(int ***list, int length, int size, int **dim)
 {
-	for (int i = 0; i < length; i++) {
+	for (int i = 0; i < length; i++)
 		free_matrix(list[i], dim[i][0]);
-	}
 	free(list);
 	free_matrix(dim, size);
 }
@@ -398,8 +400,12 @@ void sort_list(int ***list, int list_length, int **dim_list)
 {
 	for (int i = 0; i < list_length - 1; i++) {
 		for (int j = i + 1; j < list_length; j++) {
-			int first_sum = matrix_sum(list[i], dim_list[i][0], dim_list[i][1]);
-			int second_sum = matrix_sum(list[j], dim_list[j][0], dim_list[j][1]);
+			int first_sum = matrix_sum(list[i],
+										dim_list[i][0],
+										dim_list[i][1]);
+			int second_sum = matrix_sum(list[j],
+										dim_list[j][0],
+										dim_list[j][1]);
 			if (first_sum > second_sum) {
 				int **temp = list[i];
 				list[i] = list[j];
@@ -412,7 +418,7 @@ void sort_list(int ***list, int list_length, int **dim_list)
 	}
 }
 
-/** Swap the values of two numbers 
+/** Swap the values of two numbers
  * @*x - pointer to first number
  * @*y 0 pointer to second number
  */
@@ -423,7 +429,7 @@ void swap_two_numbers(int *x, int *y)
 	*y = temp;
 }
 
-/** Return the sum of the elements in a matrix 
+/** Return the sum of the elements in a matrix
  * @**matrix - 2D arrays
  * @rows - number of rows for the array
  * @cols - number of cols for the array
@@ -442,11 +448,11 @@ int matrix_sum(int **matrix, int rows, int cols)
 	return sum;
 }
 
-/** Resize a 2D arrays based on rows and columns 
- * 	read from stdin
- * @****list - pointer to list of 2D arrays
- * @*length - pointer to list length
- * @***dim_list - pointer to array that sores 2D arrays dimensions
+/** Resize a 2D arrays based on rows and columns
+ *	read from stdin
+ *	@****list - pointer to list of 2D arrays
+ *	@*length - pointer to list length
+ *	@***dim_list - pointer to array that sores 2D arrays dimensions
  */
 void resize_matrix(int ****list, int *length, int ***dim_list)
 {
@@ -492,20 +498,21 @@ void resize_matrix(int ****list, int *length, int ***dim_list)
 }
 
 /** Print an error if given index doesn't correspond to any array */
-void print_out_of_bounds_error()
+void print_out_of_bounds_error(void)
 {
 	printf("No matrix with the given index\n");
 }
 
-/** Check if the index is greater or equal with 
- * 	the length of the list or if its a negative number
+/** Check if the index is greater or equal with
+ *	the length of the list or if its a negative number
  * @index - index to be checked
  * @length - current length
  */
-int is_out_of_bounds(int index, int length) {
-	if(index >= length || index < 0) {
+int is_out_of_bounds(int index, int length)
+{
+	if (index >= length || index < 0) {
 		print_out_of_bounds_error();
 		return 1;
-	}	
+	}
 	return 0;
 }
