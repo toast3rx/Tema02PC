@@ -38,12 +38,13 @@ void add_transpose_matrix(int ***list, int length, int **dim);
 int **transpose_matrix(int **matrix, int rows, int cols);
 void free_matrix(int **matrix, int rows);
 int matrix_sum(int **matrix, int rows, int cols);
-void sort_list(int ***list, int list_length, int **dim_list);
 void swap_two_numbers(int *x, int *y);
 void free_index_matrix(int ***list, int *length, int **dim_list);
 void free_all(int ***list, int length, int size, int **dim);
 void resize_matrix(int ****list, int *length, int ***dim_list);
 int is_out_of_bounds(int index, int length);
+void quickSort(int ***list, int first, int last, int **dim);
+int partition(int ***list, int first, int last, int **dim);
 
 int main(void)
 {
@@ -76,7 +77,7 @@ int main(void)
 			add_transpose_matrix(list, length, dimensions_list);
 			break;
 		case SORT:
-			sort_list(list, length, dimensions_list);
+			quickSort(list, 0, length - 1, dimensions_list);
 			break;
 		case FREE:
 			free_index_matrix(list, &length, dimensions_list);
@@ -391,32 +392,56 @@ void free_all(int ***list, int length, int size, int **dim)
 	free_matrix(dim, size);
 }
 
-/** Sort the matrices in the list based on the sum of the elements
- * @***list - list of 2D arrays
- * @list_length - length of the list
- *  @**dim_list - array with dimensions for 2D arrays
- */
-void sort_list(int ***list, int list_length, int **dim_list)
-{
-	for (int i = 0; i < list_length - 1; i++) {
-		for (int j = i + 1; j < list_length; j++) {
-			int first_sum = matrix_sum(list[i],
-										dim_list[i][0],
-										dim_list[i][1]);
-			int second_sum = matrix_sum(list[j],
-										dim_list[j][0],
-										dim_list[j][1]);
-			if (first_sum > second_sum) {
-				int **temp = list[i];
-				list[i] = list[j];
-				list[j] = temp;
+void quickSort(int ***list, int first, int last, int **dim){
+        if(last > first){
+            int pivotIndex = partition(list, first, last, dim);
+            quickSort(list, 0 ,pivotIndex - 1, dim);
+            quickSort(list, pivotIndex + 1, last, dim);
+        }
+    }
 
-				swap_two_numbers(&dim_list[i][0], &dim_list[j][0]);
-				swap_two_numbers(&dim_list[i][1], &dim_list[j][1]);
-			}
-		}
-	}
-}
+ /** Partition the array list[first...last] */
+    int partition(int ***list, int first, int last, int **dim){
+		
+        int pivot = matrix_sum(list[first], dim[first][0], dim[first][1]); // Choose the first element as the pivot
+        int low = first + 1; // Index for forward search
+        int high = last; // Index for backward search
+
+        while(high > low){
+            // Search forward from left
+            while(high >= low && matrix_sum(list[low], dim[low][0], dim[low][1]) <= pivot)
+                low++;
+            // Search backward from right
+            while(high >= low && matrix_sum(list[high], dim[high][0], dim[high][1]) > pivot)
+                high--;
+            // Swap two elements in the list
+            if(high > low){
+                int **temp = list[high];
+                list[high] = list[low];
+                list[low] = temp;
+
+				int *dim_temp = dim[high];
+				dim[high] = dim[low];
+				dim[low] = dim_temp;
+            }
+        }
+
+        while(high > first && matrix_sum(list[high], dim[high][0], dim[high][1]) >= pivot)
+            high--;
+        // Swap pivot with list[high]
+        if(pivot > matrix_sum(list[high], dim[high][0], dim[high][1])){
+			int **tmp = list[first];
+            list[first] = list[high];
+            list[high] = tmp;
+
+			int *dim_tmp = dim[first];
+			dim[first] = dim[high];
+			dim[high] = dim_tmp;
+            return high;
+        }
+        else
+            return first;
+    }
 
 /** Swap the values of two numbers
  * @*x - pointer to first number
