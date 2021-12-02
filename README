@@ -1,0 +1,33 @@
+#Copyright Latea Mihai Alexandru 311CA
+
+Octave Simulator
+
+This application simulates Octave behaviour in working with 2D arrays
+It reads a character from keyboard and based on a set of values,
+ it runs a certain command.
+The arrays are stored in a resizable list and their dimensions in a 2D array where
+ every line correspons to a matrix, first column representing
+ the number of rows and the second column, the number of columns for that matrix.
+
+1. Matrix Allocation (L command)
+	* Takes from user input number of rows and columns
+		and then (rows * columns) elements. 
+	* The array is added in the list of arrays and if it's not enough space
+		the list will have double the initial size.
+2. Print matrix dimensions (D command)
+	* It will be printed on the terminal the number of rows and columns 
+		of matrix at a certain index given by the user.
+3. Print 2D array (P command)
+	* Print in the terminal an array at a certain index given by the user.
+4. Octave Matrix Resize (C command)
+	* The user inserts an index for a matrix and then the new number of rows
+		the matrix will have. Will be read the index for which row will 
+		remain in the aray. Same for columns. 
+	* It will be created a new 2D array with the specificed rows and columns
+		based on the initial array and it will replace it.
+5. Matrix multiplication (M command)
+	* The user will insert two indexes that represents the matrices to be 
+		multiplied.
+	* The resulted matrix will be added at the end of the list.
+6. Sort arrays based on elements sum (O command)
+	* 
