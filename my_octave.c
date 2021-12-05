@@ -35,7 +35,6 @@ void multiply_matrix(int ****matrix_list,
 					 int *matrix_list_size,
 					 int ***dim_matrix);
 void add_transpose_matrix(int ***list, int length, int **dim);
-int **transpose_matrix(int **matrix, int rows, int cols);
 void free_matrix(int **matrix, int rows);
 int matrix_sum(int **matrix, int rows, int cols);
 void sort_list(int ***list, int list_length, int **dim_list);
@@ -44,6 +43,7 @@ void free_index_matrix(int ***list, int *length, int **dim_list);
 void free_all(int ***list, int length, int size, int **dim);
 void resize_matrix(int ****list, int *length, int ***dim_list);
 int is_out_of_bounds(int index, int length);
+void transpose_square_matrix(int **mat, int size);
 
 int main(void)
 {
@@ -277,7 +277,8 @@ void multiply_matrix(int ****matrix_list,
 			for (int k = 0; k < second_rows; k++)
 				result[i][j] = ((result[i][j] % MOD) +
 				(((*matrix_list)[index_first_matrix][i][k] % MOD) *
-				(((*matrix_list)[index_second_matrix][k][j]) % MOD))) % MOD;
+				(((*matrix_list)[index_second_matrix][k][j]) % MOD))) %
+							   MOD;
 			while (result[i][j] < 0)
 				result[i][j] += MOD;
 		}
@@ -305,28 +306,49 @@ void add_transpose_matrix(int ***list, int length, int **dim)
 	int rows = dim[index][0];
 	int cols = dim[index][1];
 
-	int **transpose_result = transpose_matrix(list[index], rows, cols);
-	free_matrix(list[index], rows);
-	list[index] = transpose_result;
 	dim[index][0] = cols;
 	dim[index][1] = rows;
+
+	if (rows != cols) {
+		int max = rows > cols ? rows : cols;
+		list[index] = (int **)realloc(list[index], max * sizeof(int *));
+
+		if (cols > rows) {
+			list[index] = realloc(list[index], cols * sizeof(int *));
+			for (int i = rows; i < cols; i++)
+				list[index][i] = (int *)calloc(max, sizeof(int));
+
+			transpose_square_matrix(list[index], max);
+
+			for (int i = 0; i < max; i++)
+				list[index][i] = realloc(list[index][i], rows * sizeof(int));
+		} else {
+			for (int i = 0; i < rows; i++)
+				list[index][i] = realloc(list[index][i], rows * sizeof(int));
+
+			transpose_square_matrix(list[index], max);
+
+			for (int i = cols; i < rows; i++)
+				free(list[index][i]);
+
+			list[index] = realloc(list[index], cols * sizeof(int *));
+		}
+	}
 }
 
-/** Return the transpose of a matrix
- * @**matrix - 2D array to be tranpose
- * @rows - number of rows
- * @cols - number of columns
- * @return - transposed 2D arrays
+/** Transpose matrix in place
+ * @**mat - 2D array to be tranposed
+ * @size - number for rows/columns
  */
-int **transpose_matrix(int **matrix, int rows, int cols)
+void transpose_square_matrix(int **mat, int size)
 {
-	int **transpose = alloc_matrix(cols, rows);
-
-	for (int i = 0; i < rows; i++)
-		for (int j = 0; j < cols; j++)
-			transpose[j][i] = matrix[i][j];
-
-	return transpose;
+	for (int i = 0; i < size; ++i) {
+		for (int j = i; j < size; ++j) {
+			int temp = mat[i][j];
+			mat[i][j] = mat[j][i];
+			mat[j][i] = temp;
+		}
+	}
 }
 
 /** Free memory allocated for a 2D arrays at a given index
@@ -401,8 +423,8 @@ void sort_list(int ***list, int list_length, int **dim_list)
 	for (int i = 0; i < list_length - 1; i++) {
 		for (int j = i + 1; j < list_length; j++) {
 			int first_sum = matrix_sum(list[i],
-										dim_list[i][0],
-										dim_list[i][1]);
+									   dim_list[i][0],
+									   dim_list[i][1]);
 			int second_sum = matrix_sum(list[j],
 										dim_list[j][0],
 										dim_list[j][1]);
