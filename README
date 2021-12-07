@@ -2,32 +2,48 @@
 
 Octave Simulator
 
-This application simulates Octave behaviour in working with 2D arrays
+This application simulates Octave behavior in working with 2D arrays.
 It reads a character from keyboard and based on a set of values,
- it runs a certain command.
+it runs a certain command.
 The arrays are stored in a resizable list and their dimensions in a 2D array where
- every line correspons to a matrix, first column representing
- the number of rows and the second column, the number of columns for that matrix.
+every line corresponds to a matrix, first column representing
+the number of rows and the second column, the number of columns for that matrix.
 
 1. Matrix Allocation (L command)
-	* Takes from user input number of rows and columns
-		and then (rows * columns) elements. 
-	* The array is added in the list of arrays and if it's not enough space
-		the list will have double the initial size.
+   - Takes from user input number of rows and columns
+     and then (rows * columns) elements.
+   - The array is added in the list of arrays and if it's not enough space
+     the list will get double the initial size.
 2. Print matrix dimensions (D command)
-	* It will be printed on the terminal the number of rows and columns 
-		of matrix at a certain index given by the user.
+   - It will be printed in terminal the number of rows and columns
+     of matrix at a certain index given by the user.
 3. Print 2D array (P command)
-	* Print in the terminal an array at a certain index given by the user.
+   - Print in terminal an array at a certain index given by the user.
 4. Octave Matrix Resize (C command)
-	* The user inserts an index for a matrix and then the new number of rows
-		the matrix will have. Will be read the index for which row will 
-		remain in the aray. Same for columns. 
-	* It will be created a new 2D array with the specificed rows and columns
-		based on the initial array and it will replace it.
+   - The user inserts an index for a matrix and then the new number of rows
+     the matrix will have. It will be read the index for which row will
+     remain in the array. Same for columns.
+   - It will be created a new 2D array with the specified rows and columns
+     based on the initial array and it will replace it.
 5. Matrix multiplication (M command)
-	* The user will insert two indexes that represents the matrices to be 
-		multiplied.
-	* The resulted matrix will be added at the end of the list.
+   - The user will insert two indexes that represents the matrices to be
+     multiplied.
+   - The resulted matrix will be added at the end of the list.
 6. Sort arrays based on elements sum (O command)
-	* 
+   - For every array it will be calculated the sum of elements and
+     based on it, the arrays will be sorted in ascending order.
+7. Transpose matrix (T command)
+	- Transpose a matrix at a given index in place.
+8. Delete matrix (F command)
+	- Delete a matrix at a given index. 
+	- Move the arrays to its right one place to left
+		to occupy the freed space.
+9. Stop the application (Q command)
+	- The application will it not be waiting for user input anymore.
+	- All memory for 2D arrays and matrix list is freed.
+10. Multiply matrices with Strassen's Algorithm (S command, BONUS)
+	- Recursive method for matrix multiplication where 
+		the matrix is divided into 4 sub-matrices
+		of dimensions n / 2 x n / 2 in each recursive step.
+	- The product of the two matrices is calculated with a variety of specific
+		formulas.
