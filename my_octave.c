@@ -13,6 +13,7 @@
 #define TRANSPOSE 'T'
 #define SORT 'O'
 #define FREE 'F'
+#define STRASSEN 'S'
 #define STOP 'Q'
 
 void add_matrix(int ****list,
@@ -44,6 +45,8 @@ void free_all(int ***list, int length, int size, int **dim);
 void resize_matrix(int ****list, int *length, int ***dim_list);
 int is_out_of_bounds(int index, int length);
 void transpose_square_matrix(int **mat, int size);
+int **strassen_multiplication(int **A, int **B, int n);
+void strassen(int ****matrix_list, int *matrix_list_len, int *matrix_list_size, int ***dim_matrix);
 
 int main(void)
 {
@@ -80,6 +83,9 @@ int main(void)
 			break;
 		case FREE:
 			free_index_matrix(list, &length, dimensions_list);
+			break;
+		case STRASSEN:
+			strassen(&list, &length, &size, &dimensions_list);
 			break;
 		case STOP:
 			break;
@@ -537,4 +543,185 @@ int is_out_of_bounds(int index, int length)
 		return 1;
 	}
 	return 0;
+}
+
+////////////////////// STRASSEN ////////////////
+int **add(int **matrix1, int **matrix2, int n)
+{
+	int **temp = alloc_matrix(n, n);
+	for (int i = 0; i < n; i++)
+		for (int j = 0; j < n; j++) {
+			temp[i][j] = ((matrix1[i][j] % MOD) + (matrix2[i][j] % MOD)) % MOD;
+			if (temp[i][j] < 0)
+				temp[i][j] += MOD;
+		}
+
+	return temp;
+}
+int **subtract(int **matrix1, int **matrix2, int n)
+{
+	int **temp = alloc_matrix(n, n);
+	for (int i = 0; i < n; i++)
+		for (int j = 0; j < n; j++) {
+			temp[i][j] = ((matrix1[i][j] % MOD) - (matrix2[i][j] % MOD)) % MOD;
+			if (temp[i][j] < 0)
+				temp[i][j] += MOD;
+		}
+
+	return temp;
+}
+
+int **strassen_multiplication(int **A, int **B, int n)
+{
+	if (n == 1) {
+		int **C = alloc_matrix(1, 1);
+		C[0][0] = ((A[0][0] % MOD) * (B[0][0] % MOD)) % MOD;
+		if (C[0][0] < 0)
+			C[0][0] += MOD;
+		return C;
+	}
+	int **C = alloc_matrix(n, n);
+	int k = n / 2;
+
+	int **A11 = alloc_matrix(k, k);
+	int **A12 = alloc_matrix(k, k);
+	int **A21 = alloc_matrix(k, k);
+	int **A22 = alloc_matrix(k, k);
+	int **B11 = alloc_matrix(k, k);
+	int **B12 = alloc_matrix(k, k);
+	int **B21 = alloc_matrix(k, k);
+	int **B22 = alloc_matrix(k, k);
+
+	for (int i = 0; i < k; i++)
+		for (int j = 0; j < k; j++) {
+			A11[i][j] = A[i][j];
+			A12[i][j] = A[i][k + j];
+			A21[i][j] = A[k + i][j];
+			A22[i][j] = A[k + i][k + j];
+			B11[i][j] = B[i][j];
+			B12[i][j] = B[i][k + j];
+			B21[i][j] = B[k + i][j];
+			B22[i][j] = B[k + i][k + j];
+		}
+
+	int **sub_p1 = subtract(B12, B22, k);
+	int **add_p2 = add(A11, A12, k);
+	int **add_p3 = add(A21, A22, k);
+	int **sub_p4 = subtract(B21, B11, k);
+	int **add_p5_0 = add(A11, A22, k);
+	int **add_p5_1 = add(B11, B22, k);
+	int **sub_p6 = subtract(A12, A22, k);
+	int **add_p6 = add(B21, B22, k);
+	int **sub_p7 = subtract(A11, A21, k);
+	int **add_p7 = add(B11, B12, k);
+
+	int **P1 = strassen_multiplication(A11, sub_p1, k);
+	int **P2 = strassen_multiplication(add_p2, B22, k);
+	int **P3 = strassen_multiplication(add_p3, B11, k);
+	int **P4 = strassen_multiplication(A22, sub_p4, k);
+	int **P5 = strassen_multiplication(add_p5_0, add_p5_1, k);
+	int **P6 = strassen_multiplication(sub_p6, add_p6, k);
+	int **P7 = strassen_multiplication(sub_p7, add_p7, k);
+
+	int **add_C11_0 = add(P5, P4, k);
+	int **add_C11_1 = add(add_C11_0, P6, k);
+
+	int **C11 = subtract(add_C11_1, P2, k);
+	int **C12 = add(P1, P2, k);
+	int **C21 = add(P3, P4, k);
+
+	int **add_C22_0 = add(P5, P1, k);
+	int **sub_C22_1 = subtract(add_C22_0, P3, k);
+
+	int **C22 = subtract(sub_C22_1, P7, k);
+
+	for (int i = 0; i < k; i++)
+		for (int j = 0; j < k; j++) {
+			C[i][j] = C11[i][j];
+			C[i][j + k] = C12[i][j];
+			C[k + i][j] = C21[i][j];
+			C[k + i][k + j] = C22[i][j];
+		}
+
+	free_matrix(sub_p1, k);
+	free_matrix(add_p2, k);
+	free_matrix(add_p3, k);
+	free_matrix(sub_p4, k);
+	free_matrix(add_p5_0, k);
+	free_matrix(add_p5_1, k);
+	free_matrix(sub_p6, k);
+	free_matrix(add_p6, k);
+	free_matrix(add_p7, k);
+	free_matrix(sub_p7, k);
+
+	free_matrix(add_C11_0, k);
+	free_matrix(add_C11_1, k);
+	free_matrix(add_C22_0, k);
+	free_matrix(sub_C22_1, k);
+
+	free_matrix(P1, k);
+	free_matrix(P2, k);
+	free_matrix(P3, k);
+	free_matrix(P4, k);
+	free_matrix(P5, k);
+	free_matrix(P6, k);
+	free_matrix(P7, k);
+	free_matrix(C11, k);
+	free_matrix(C12, k);
+	free_matrix(C21, k);
+	free_matrix(C22, k);
+
+	free_matrix(A11, k);
+	free_matrix(A12, k);
+	free_matrix(A21, k);
+	free_matrix(A22, k);
+	free_matrix(B11, k);
+	free_matrix(B12, k);
+	free_matrix(B21, k);
+	free_matrix(B22, k);
+
+	return C;
+}
+
+void strassen(int ****matrix_list,
+			  int *matrix_list_len,
+			  int *matrix_list_size,
+			  int ***dim_matrix)
+{
+	int index_first_matrix;
+	int index_second_matrix;
+
+	scanf("%d%d", &index_first_matrix, &index_second_matrix);
+
+	if (is_out_of_bounds(index_first_matrix, *matrix_list_len) ||
+		is_out_of_bounds(index_second_matrix, *matrix_list_len))
+		return;
+
+	int first_rows = (*dim_matrix)[index_first_matrix][0];
+	int first_cols = (*dim_matrix)[index_first_matrix][1];
+
+	int second_rows = (*dim_matrix)[index_second_matrix][0];
+	int second_cols = (*dim_matrix)[index_second_matrix][1];
+
+	if ((first_rows != first_cols ||
+		second_rows != second_cols) ||
+		first_rows != second_cols) {
+		printf("Cannot perform matrix multiplication\n");
+		return;
+	}
+
+	if (*matrix_list_len == *matrix_list_size)
+		realloc_matrix_list(matrix_list, dim_matrix,
+							matrix_list_size,
+							*matrix_list_len,
+							*matrix_list_size * 2);
+
+	int **result = strassen_multiplication((*matrix_list)[index_first_matrix],
+											(*matrix_list)[index_second_matrix],
+											first_rows);
+
+	(*matrix_list)[*matrix_list_len] = result;
+	(*dim_matrix)[*matrix_list_len][0] = first_rows;
+	(*dim_matrix)[*matrix_list_len][1] = second_cols;
+	*matrix_list_len = *matrix_list_len + 1;
 }
