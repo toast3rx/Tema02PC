@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
 
 #define SIZE 1
 
@@ -8,12 +9,12 @@
 #define ALLOC 'L'
 #define DIM 'D'
 #define PRINT 'P'
-#define REDIM 'C'
+#define RESIZE 'C'
 #define MULTIPLY 'M'
 #define TRANSPOSE 'T'
 #define SORT 'O'
 #define FREE 'F'
-#define STRASSEN 'S'
+#define STRAS 'S'
 #define STOP 'Q'
 
 void add_matrix(int ****list,
@@ -45,8 +46,12 @@ void free_all(int ***list, int length, int size, int **dim);
 void resize_matrix(int ****list, int *length, int ***dim_list);
 int is_out_of_bounds(int index, int length);
 void transpose_square_matrix(int **mat, int size);
-int **strassen_multiplication(int **A, int **B, int n);
-void strassen(int ****matrix_list, int *matrix_list_len, int *matrix_list_size, int ***dim_matrix);
+int **strassen_algorithm(int **A, int **B, int n);
+void strassen_multiplication(int ****matrix_list,
+							 int *matrix_list_len,
+							 int *matrix_list_size,
+							 int ***dim_matrix);
+void free_matrices(int n, int num, ...);
 
 int main(void)
 {
@@ -69,7 +74,7 @@ int main(void)
 		case PRINT:
 			print_array(list, dimensions_list, length);
 			break;
-		case REDIM:
+		case RESIZE:
 			resize_matrix(&list, &length, &dimensions_list);
 			break;
 		case MULTIPLY:
@@ -84,8 +89,8 @@ int main(void)
 		case FREE:
 			free_index_matrix(list, &length, dimensions_list);
 			break;
-		case STRASSEN:
-			strassen(&list, &length, &size, &dimensions_list);
+		case STRAS:
+			strassen_multiplication(&list, &length, &size, &dimensions_list);
 			break;
 		case STOP:
 			break;
@@ -101,10 +106,11 @@ int main(void)
 	return 0;
 }
 
-/** Print array for a given index
- * @***list - list of 2D arrays
- * @**dimensions_array - array for arrays dimensions
- * @list_length - current length of list
+/**
+ * Print array for a given index
+ * @param list - list of 2D arrays
+ * @param dimensions_array - array for arrays dimensions
+ * @param list_length - current length of list
 */
 void print_array(int ***list, int **dimensions_array, int list_length)
 {
@@ -122,8 +128,8 @@ void print_array(int ***list, int **dimensions_array, int list_length)
 }
 
 /** Print the number of rows and columns for a matrix at a given index
- * @**list - list of 2d Arrays
- * @list_length - current length of list
+ * @param list - list of 2d Arrays
+ * @param list_length - current length of list
 */
 void print_dimensions(int **list, int list_length)
 {
@@ -135,11 +141,12 @@ void print_dimensions(int **list, int list_length)
 	printf("%d %d\n", list[index][0], list[index][1]);
 }
 
-/** Add a new matrix to the 3D array
- * @****list - pointer to the list of 2D arrays
- * @*list_length - pointer to current length of list
- * @*list_size - total memory allocated for list
- * @***dim_list - pointer to dimensions list
+/**
+ * Add a new matrix to the 3D array
+ * @param list - pointer to the list of 2D arrays
+ * @param list_length - pointer to current length of list
+ * @param list_size - total memory allocated for list
+ * @param dim_list - pointer to dimensions list
 */
 void add_matrix(int ****list, int *list_length, int *list_size, int ***dim_list)
 {
@@ -163,8 +170,9 @@ void add_matrix(int ****list, int *list_length, int *list_size, int ***dim_list)
 	*list_length = *list_length + 1;
 }
 
-/** Alloc memory in a 3D array for 2D arrays
- * @initial_size - initial number of 2D arrays to be stored
+/**
+ * Alloc memory in a 3D array for 2D arrays
+ * @param initial_size - initial number of 2D arrays to be stored
  */
 int ***initialize_3D_array(int initial_size)
 {
@@ -174,10 +182,11 @@ int ***initialize_3D_array(int initial_size)
 	return list;
 }
 
-/** Double the size of a 3D array
- * @****matrix_list - pointer to the list of 2D arrays
- * @***dim_list - pointer to the list of dimensions array
- * @*size - pointer to list max size
+/**
+ * Double the size of a 3D array
+ * @param matrix_list - pointer to the list of 2D arrays
+ * @param dim_list - pointer to the list of dimensions array
+ * @param size - pointer to list max size
  */
 void realloc_matrix_list(int ****matrix_list,
 						 int ***dim_list,
@@ -223,10 +232,11 @@ int **alloc_matrix(int n, int m)
 	return matrix;
 }
 
-/** Read from stdin an array with n rows and m columns2
- *	@matrix - 2D Array where the values will be stored
- *	@n - number of rows
- *	@m - number of columns
+/**
+ * Read from stdin an array with n rows and m columns
+ *	@param matrix - 2D Array where the values will be stored
+ *	@param n - number of rows
+ *	@param m - number of columns
  */
 void read_matrix(int **matrix, int n, int m)
 {
@@ -235,11 +245,12 @@ void read_matrix(int **matrix, int n, int m)
 			scanf("%d", &matrix[i][j]);
 }
 
-/** Multiply 2 2D arrays from 2 given indexes
- * @****matrix_list - pointer to list of 2D arrays
- * @*matrix_list_len - pointer to length of the list
- * @*matrix_list_size - pointer to total size of the list
- * @***dim_matrix - pointer to 2D array that stores arrays dimensions
+/**
+ * Multiply 2 2D arrays from 2 given indexes
+ * @param matrix_list - pointer to list of 2D arrays
+ * @param matrix_list_len - pointer to length of the list
+ * @param matrix_list_size - pointer to total size of the list
+ * @param dim_matrix - pointer to 2D array that stores arrays dimensions
  */
 void multiply_matrix(int ****matrix_list,
 					 int *matrix_list_len,
@@ -296,10 +307,11 @@ void multiply_matrix(int ****matrix_list,
 	*matrix_list_len = *matrix_list_len + 1;
 }
 
-/** Replace a matrix at the given index with its transpose
- * @list - list of 2D arrays
- * @length - list length
- * @dim - list that stores arrays rows and columns number
+/**
+ * Replace a matrix at the given index with its transpose
+ * @param list - list of 2D arrays
+ * @param length - list length
+ * @param dim - list that stores arrays rows and columns number
  */
 void add_transpose_matrix(int ***list, int length, int **dim)
 {
@@ -342,9 +354,10 @@ void add_transpose_matrix(int ***list, int length, int **dim)
 	}
 }
 
-/** Transpose matrix in place
- * @**mat - 2D array to be tranposed
- * @size - number for rows/columns
+/**
+ * Transpose matrix in place
+ * @param mat - 2D array to be tranposed
+ * @param size - number for rows/columns
  */
 void transpose_square_matrix(int **mat, int size)
 {
@@ -357,10 +370,11 @@ void transpose_square_matrix(int **mat, int size)
 	}
 }
 
-/** Free memory allocated for a 2D arrays at a given index
- * @***list - list of 2D arrays
- * @*length - pointer to list length
- * @**dim_list - array with dimensions for 2D arrays
+/**
+ * Free memory allocated for a 2D arrays at a given index
+ * @param list - list of 2D arrays
+ * @param length - pointer to list length
+ * @param dim_list - array with dimensions for 2D arrays
  */
 void free_index_matrix(int ***list, int *length, int **dim_list)
 {
@@ -387,16 +401,12 @@ void free_index_matrix(int ***list, int *length, int **dim_list)
 	dim_list[*length - 1] = (int *)calloc(2, sizeof(int));
 
 	*length = *length - 1;
-
-	// BIG PROBLEM HERE
-	// if(*length < *size / 2) {
-	//	realloc_matrix_list(&list, &dim_list, size, *length, *size / 2);
-	//	}
 }
 
-/** Free a matrix of memory and its rows
- * @matrix -- the matrix to be freed
- * @rows -- number of rows
+/**
+ * Free a matrix of memory and its rows
+ * @param matrix -- the matrix to be freed
+ * @param rows -- number of rows
  */
 void free_matrix(int **matrix, int rows)
 {
@@ -405,11 +415,12 @@ void free_matrix(int **matrix, int rows)
 	free(matrix);
 }
 
-/** Free all memory allocated
- * @***list - list of 2D arrays
- * @length - list length
- * @size - total memory allocated in list
- * @**dim_list - array with dimensions for 2D arrays
+/**
+ * Free all allocated memory
+ * @param list - list of 2D arrays
+ * @param length - list's length
+ * @param size - total memory allocated in list
+ * @param dim_list - array with dimensions for 2D arrays
  */
 void free_all(int ***list, int length, int size, int **dim)
 {
@@ -419,10 +430,11 @@ void free_all(int ***list, int length, int size, int **dim)
 	free_matrix(dim, size);
 }
 
-/** Sort the matrices in the list based on the sum of the elements
- * @***list - list of 2D arrays
- * @list_length - length of the list
- *  @**dim_list - array with dimensions for 2D arrays
+/**
+ * Sort the matrices in the list based on the sum of the elements
+ * @param list - list of 2D arrays
+ * @param list_length - length of the list
+ *  @param dim_list - array with dimensions for 2D arrays
  */
 void sort_list(int ***list, int list_length, int **dim_list)
 {
@@ -446,9 +458,10 @@ void sort_list(int ***list, int list_length, int **dim_list)
 	}
 }
 
-/** Swap the values of two numbers
- * @*x - pointer to first number
- * @*y 0 pointer to second number
+/**
+ * Swap the values of two numbers
+ * @param x - pointer to first number
+ * @param y - pointer to second number
  */
 void swap_two_numbers(int *x, int *y)
 {
@@ -457,11 +470,12 @@ void swap_two_numbers(int *x, int *y)
 	*y = temp;
 }
 
-/** Return the sum of the elements in a matrix
- * @**matrix - 2D arrays
- * @rows - number of rows for the array
- * @cols - number of cols for the array
- * @return - sum of the elements
+/**
+ * Return the sum of the elements in a matrix
+ * @param matrix - 2D arrays
+ * @param rows - number of rows for the array
+ * @param cols - number of cols for the array
+ * @return sum of the elements
 */
 int matrix_sum(int **matrix, int rows, int cols)
 {
@@ -476,11 +490,12 @@ int matrix_sum(int **matrix, int rows, int cols)
 	return sum;
 }
 
-/** Resize a 2D arrays based on rows and columns
+/**
+ * Resize a 2D arrays based on rows and columns
  *	read from stdin
- *	@****list - pointer to list of 2D arrays
- *	@*length - pointer to list length
- *	@***dim_list - pointer to array that sores 2D arrays dimensions
+ *	@param list - pointer to list of 2D arrays
+ *	@param length - pointer to list length
+ *	@param dim_list - pointer to array that stores 2D arrays dimensions
  */
 void resize_matrix(int ****list, int *length, int ***dim_list)
 {
@@ -525,16 +540,20 @@ void resize_matrix(int ****list, int *length, int ***dim_list)
 	free(rows);
 }
 
-/** Print an error if given index doesn't correspond to any array */
+/**
+ * Print an error if given index doesn't correspond to any array
+ */
 void print_out_of_bounds_error(void)
 {
 	printf("No matrix with the given index\n");
 }
 
-/** Check if the index is greater or equal with
+/**
+ * Check if the index is greater or equal with
  *	the length of the list or if its a negative number
- * @index - index to be checked
- * @length - current length
+ * @param index - index to be checked
+ * @param length - current length
+ * @return status code: 1 for error, 0 for OK
  */
 int is_out_of_bounds(int index, int length)
 {
@@ -545,34 +564,72 @@ int is_out_of_bounds(int index, int length)
 	return 0;
 }
 
-////////////////////// STRASSEN ////////////////
-int **add(int **matrix1, int **matrix2, int n)
+/**
+ * Sum operation for 2 nXn matrices
+ * @param matrix1 - first matrix
+ * @param matrix2 - second matrix
+ * @n - number of rows/columns
+ * @return the resulted matrix
+ */
+int **add_matrices(int **matrix1, int **matrix2, int n)
 {
-	int **temp = alloc_matrix(n, n);
+	int **res = alloc_matrix(n, n);
 	for (int i = 0; i < n; i++)
 		for (int j = 0; j < n; j++) {
-			temp[i][j] = ((matrix1[i][j] % MOD) + (matrix2[i][j] % MOD)) % MOD;
-			if (temp[i][j] < 0)
-				temp[i][j] += MOD;
+			res[i][j] = ((matrix1[i][j] % MOD) + (matrix2[i][j] % MOD)) % MOD;
+			if (res[i][j] < 0)
+				res[i][j] += MOD;
 		}
 
-	return temp;
+	return res;
 }
-int **subtract(int **matrix1, int **matrix2, int n)
+
+/**
+ * Substract operation for 2 nXn matrices
+ * @param matrix1 - first matrix
+ * @param matrix2 - second matrix
+ * @param n - number of rows/columns
+ * @return the resulted matrix
+ */
+int **subtract_matrices(int **matrix1, int **matrix2, int n)
 {
-	int **temp = alloc_matrix(n, n);
+	int **res = alloc_matrix(n, n);
 	for (int i = 0; i < n; i++)
 		for (int j = 0; j < n; j++) {
-			temp[i][j] = ((matrix1[i][j] % MOD) - (matrix2[i][j] % MOD)) % MOD;
-			if (temp[i][j] < 0)
-				temp[i][j] += MOD;
+			res[i][j] = ((matrix1[i][j] % MOD) - (matrix2[i][j] % MOD)) % MOD;
+			if (res[i][j] < 0)
+				res[i][j] += MOD;
 		}
 
-	return temp;
+	return res;
 }
 
-int **strassen_multiplication(int **A, int **B, int n)
+/**
+ * Free memory for a list of 2D arrays
+ * @param n - number of rows
+ * @param size - size of the list
+ * @param ... - list with 2D Arrays
+ */
+void free_matrices(int n, int size, ...)
 {
+	va_list valist;
+
+	va_start(valist, size);
+	for (int i = 0; i < size; i++)
+		free_matrix(va_arg(valist, int**), n);
+	va_end(valist);
+}
+
+/**
+ * Strassen's algorithm to multiply 2 nXn  matrices in an  efficient way
+ * @param A - first matrix
+ * @param B - second matrix
+ * @param n - number of rows/cols
+ * @return the resulted matrix
+ */
+int **strassen_algorithm(int **A, int **B, int n)
+{
+	//Base case
 	if (n == 1) {
 		int **C = alloc_matrix(1, 1);
 		C[0][0] = ((A[0][0] % MOD) * (B[0][0] % MOD)) % MOD;
@@ -582,7 +639,7 @@ int **strassen_multiplication(int **A, int **B, int n)
 	}
 	int **C = alloc_matrix(n, n);
 	int k = n / 2;
-
+	//Partition matrices
 	int **A11 = alloc_matrix(k, k);
 	int **A12 = alloc_matrix(k, k);
 	int **A21 = alloc_matrix(k, k);
@@ -603,37 +660,34 @@ int **strassen_multiplication(int **A, int **B, int n)
 			B21[i][j] = B[k + i][j];
 			B22[i][j] = B[k + i][k + j];
 		}
+	//Helper arrays for calculation
+	int **sub_p1 = subtract_matrices(B12, B22, k);
+	int **add_p2 = add_matrices(A11, A12, k);
+	int **add_p3 = add_matrices(A21, A22, k);
+	int **sub_p4 = subtract_matrices(B21, B11, k);
+	int **add_p5_0 = add_matrices(A11, A22, k);
+	int **add_p5_1 = add_matrices(B11, B22, k);
+	int **sub_p6 = subtract_matrices(A12, A22, k);
+	int **add_p6 = add_matrices(B21, B22, k);
+	int **sub_p7 = subtract_matrices(A11, A21, k);
+	int **add_p7 = add_matrices(B11, B12, k);
+	int **P1 = strassen_algorithm(A11, sub_p1, k);
+	int **P2 = strassen_algorithm(add_p2, B22, k);
+	int **P3 = strassen_algorithm(add_p3, B11, k);
+	int **P4 = strassen_algorithm(A22, sub_p4, k);
+	int **P5 = strassen_algorithm(add_p5_0, add_p5_1, k);
+	int **P6 = strassen_algorithm(sub_p6, add_p6, k);
+	int **P7 = strassen_algorithm(sub_p7, add_p7, k);
 
-	int **sub_p1 = subtract(B12, B22, k);
-	int **add_p2 = add(A11, A12, k);
-	int **add_p3 = add(A21, A22, k);
-	int **sub_p4 = subtract(B21, B11, k);
-	int **add_p5_0 = add(A11, A22, k);
-	int **add_p5_1 = add(B11, B22, k);
-	int **sub_p6 = subtract(A12, A22, k);
-	int **add_p6 = add(B21, B22, k);
-	int **sub_p7 = subtract(A11, A21, k);
-	int **add_p7 = add(B11, B12, k);
+	int **add_C11_0 = add_matrices(P5, P4, k);
+	int **add_C11_1 = add_matrices(add_C11_0, P6, k);
+	int **C11 = subtract_matrices(add_C11_1, P2, k);
+	int **C12 = add_matrices(P1, P2, k);
+	int **C21 = add_matrices(P3, P4, k);
 
-	int **P1 = strassen_multiplication(A11, sub_p1, k);
-	int **P2 = strassen_multiplication(add_p2, B22, k);
-	int **P3 = strassen_multiplication(add_p3, B11, k);
-	int **P4 = strassen_multiplication(A22, sub_p4, k);
-	int **P5 = strassen_multiplication(add_p5_0, add_p5_1, k);
-	int **P6 = strassen_multiplication(sub_p6, add_p6, k);
-	int **P7 = strassen_multiplication(sub_p7, add_p7, k);
-
-	int **add_C11_0 = add(P5, P4, k);
-	int **add_C11_1 = add(add_C11_0, P6, k);
-
-	int **C11 = subtract(add_C11_1, P2, k);
-	int **C12 = add(P1, P2, k);
-	int **C21 = add(P3, P4, k);
-
-	int **add_C22_0 = add(P5, P1, k);
-	int **sub_C22_1 = subtract(add_C22_0, P3, k);
-
-	int **C22 = subtract(sub_C22_1, P7, k);
+	int **add_C22_0 = add_matrices(P5, P1, k);
+	int **sub_C22_1 = subtract_matrices(add_C22_0, P3, k);
+	int **C22 = subtract_matrices(sub_C22_1, P7, k);
 
 	for (int i = 0; i < k; i++)
 		for (int j = 0; j < k; j++) {
@@ -642,51 +696,28 @@ int **strassen_multiplication(int **A, int **B, int n)
 			C[k + i][j] = C21[i][j];
 			C[k + i][k + j] = C22[i][j];
 		}
-
-	free_matrix(sub_p1, k);
-	free_matrix(add_p2, k);
-	free_matrix(add_p3, k);
-	free_matrix(sub_p4, k);
-	free_matrix(add_p5_0, k);
-	free_matrix(add_p5_1, k);
-	free_matrix(sub_p6, k);
-	free_matrix(add_p6, k);
-	free_matrix(add_p7, k);
-	free_matrix(sub_p7, k);
-
-	free_matrix(add_C11_0, k);
-	free_matrix(add_C11_1, k);
-	free_matrix(add_C22_0, k);
-	free_matrix(sub_C22_1, k);
-
-	free_matrix(P1, k);
-	free_matrix(P2, k);
-	free_matrix(P3, k);
-	free_matrix(P4, k);
-	free_matrix(P5, k);
-	free_matrix(P6, k);
-	free_matrix(P7, k);
-	free_matrix(C11, k);
-	free_matrix(C12, k);
-	free_matrix(C21, k);
-	free_matrix(C22, k);
-
-	free_matrix(A11, k);
-	free_matrix(A12, k);
-	free_matrix(A21, k);
-	free_matrix(A22, k);
-	free_matrix(B11, k);
-	free_matrix(B12, k);
-	free_matrix(B21, k);
-	free_matrix(B22, k);
+	// Free the memory for every helper array created
+	free_matrices(k, 33, sub_p1, add_p2, add_p3, sub_p4, add_p5_0,
+				  add_p5_1, sub_p6, add_p6, sub_p7, add_p7,
+				  add_C11_0, add_C11_1, add_C22_0, sub_C22_1,
+				  P1, P2, P3, P4, P5, P6, P7, C11, C12, C21, C22,
+				  A11, A12, A21, A22, B11, B12, B21, B22);
 
 	return C;
 }
 
-void strassen(int ****matrix_list,
-			  int *matrix_list_len,
-			  int *matrix_list_size,
-			  int ***dim_matrix)
+/**
+ * Add the result of two matrices multiplication
+ * in the 2D arrays list
+ * @param matrix_list - list of 2D arrays
+ * @param matrix_list_len - current number of 2D arrays
+ * @param matrix_list_size - total size of the list
+ * @param dim_matrix - 2D array with number of rows/columns for every array
+ */
+void strassen_multiplication(int ****matrix_list,
+							 int *matrix_list_len,
+							 int *matrix_list_size,
+							 int ***dim_matrix)
 {
 	int index_first_matrix;
 	int index_second_matrix;
@@ -703,9 +734,10 @@ void strassen(int ****matrix_list,
 	int second_rows = (*dim_matrix)[index_second_matrix][0];
 	int second_cols = (*dim_matrix)[index_second_matrix][1];
 
+	//Check if the number of rows/cols in both arrays are the same
 	if ((first_rows != first_cols ||
-		second_rows != second_cols) ||
-		first_rows != second_cols) {
+		 second_rows != second_cols) ||
+		 first_rows != second_cols) {
 		printf("Cannot perform matrix multiplication\n");
 		return;
 	}
@@ -716,7 +748,7 @@ void strassen(int ****matrix_list,
 							*matrix_list_len,
 							*matrix_list_size * 2);
 
-	int **result = strassen_multiplication((*matrix_list)[index_first_matrix],
+	int **result = strassen_algorithm((*matrix_list)[index_first_matrix],
 											(*matrix_list)[index_second_matrix],
 											first_rows);
 
